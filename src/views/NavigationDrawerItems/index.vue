@@ -9,7 +9,7 @@
     <v-divider></v-divider>
 
     <v-list dense nav>
-      <v-list-item v-for="item in items" :key="item.title" link>
+      <v-list-item v-for="item in items" :key="item.title" link :to="item.link">
         <v-list-item-icon>
           <v-icon>{{ item.icon }}</v-icon>
         </v-list-item-icon>
@@ -28,9 +28,10 @@ export default {
   data() {
     return {
       items: [
-        { title: "Dashboard", icon: "mdi-view-dashboard" },
-        { title: "Photos", icon: "mdi-image" },
-        { title: "About", icon: "mdi-help-box" },
+        { title: "今天", icon: "mdi-home-outline",link:'today' },
+        { title: "待办", icon: "mdi-format-list-checks" ,link:'todo'},
+        { title: "日程", icon: "mdi-calendar-today" ,link:'schedule'},
+        { title: "关于", icon: "mdi-information-outline" ,link:'about'},
       ],
       right: null,
     };
