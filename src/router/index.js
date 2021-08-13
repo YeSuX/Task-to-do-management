@@ -6,27 +6,27 @@ Vue.use(VueRouter);
 const routes = [
   {
     path: '/',
-    name: 'Home',
+    name: '首页',
     component: ()=>import ('@/views/Home'),
   },
   {
     path: '/today',
-    name: 'Today',
+    name: '今天',
     component: ()=>import ('@/views/Today'),
   },
   {
     path: '/todo',
-    name: 'Todo',
+    name: '待办',
     component: ()=>import ('@/views/Todo'),
   },
   {
     path: '/schedule',
-    name: 'Schedule',
+    name: '日程',
     component: ()=>import ('@/views/Schedule'),
   },
   {
     path: '/about',
-    name: 'About',
+    name: '关于',
     component: ()=>import ('@/views/About'),
   },
 ];

@@ -6,11 +6,13 @@
     <v-app-bar app>
       <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
 
-      <v-toolbar-title>今天</v-toolbar-title>
+      <v-toolbar-title>{{ title }}</v-toolbar-title>
     </v-app-bar>
 
     <v-main>
-      <router-view/>
+      <v-container>
+        <router-view />
+      </v-container>
     </v-main>
   </v-app>
 </template>
@@ -26,6 +28,11 @@ export default {
     return {
       drawer: false,
     };
+  },
+  computed: {
+    title() {
+      return this.$route.name;
+    },
   },
 };
 </script>
