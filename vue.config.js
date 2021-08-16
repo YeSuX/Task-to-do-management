@@ -26,7 +26,7 @@ module.exports = {
       alias: {
         '@': resolve('src')
       }
-    }
+    },
   },
   transpileDependencies: [
     'vuetify',
