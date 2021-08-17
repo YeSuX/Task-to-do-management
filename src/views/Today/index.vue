@@ -9,7 +9,9 @@
       <v-col cols="12" sm="6" class="tomatoContainer">
         <tomato-clock-timer></tomato-clock-timer>
       </v-col>
-      <v-col cols="12" sm="6" class="todoContainer"> todo list </v-col>
+      <v-col cols="12" sm="6" class="todoContainer">
+        <to-do></to-do>
+      </v-col>
     </v-row>
     <v-row class="time-record">
       <v-col> time record </v-col>
@@ -20,10 +22,13 @@
 <script>
 import ProgressLinear from "@/components/ProgressLinear";
 import TomatoClockTimer from "@/components/TomatoClockTimer";
+import ToDo from "@/components/ToDo";
+
 export default {
   components: {
     ProgressLinear,
-    TomatoClockTimer
+    TomatoClockTimer,
+    ToDo
   },
   data() {
     return {

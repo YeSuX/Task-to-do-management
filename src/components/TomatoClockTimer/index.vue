@@ -4,6 +4,7 @@
     color="#1E384C"
     min-height="600px"
     :class="{ 'menu-open': menuOpen }"
+    :style="{ color: activeReminder.waveFrontColor, backgroundColor: stageBg }"
   >
     <v-app-bar class="navbar" absolute flat color="rgba(0, 0, 0, 0)">
       <v-spacer></v-spacer>
@@ -13,7 +14,7 @@
     </v-app-bar>
     <div class="menu">
       <ul class="menu__list">
-        <li class="menu__item">
+        <li class="menu__item" @mouseover="mouseOver('water')" @mouseout="mouseOut()" @touchstart="mouseOver('water')" @touchend="mouseOut()">
           <a href="#" @click.prevent="start('water')">
             <svg
               id="coffee-cup"
@@ -30,7 +31,7 @@
                 d="M39.09,6.88s-3.13,2-5.48,0c-4.92,2.65-7.72,0-7.72,0s-4.59,2.76-7.94,0c-4.47,3.09-7,0-7,0l3.91,33.76H35Z"
               />
             </svg>
-            <span>Water break</span>
+            <span>喝水（25分钟）</span>
           </a>
         </li>
         <li class="menu__item">
@@ -46,7 +47,7 @@
                 d="M7.07,11.94H33.73s3.72,23.65-13.3,23.65S7.07,11.94,7.07,11.94Z"
               />
             </svg>
-            <span>Coffee break</span>
+            <span>喝咖啡（45分钟）</span>
           </a>
         </li>
         <li class="menu__item">
@@ -66,7 +67,7 @@
                 d="M24.62,26.71a1.5,1.5,0,0,1-1.5-1.5V9.54a1.5,1.5,0,0,1,3,0V25.21A1.5,1.5,0,0,1,24.62,26.71Z"
               />
             </svg>
-            <span>Office Break</span>
+            <span>休息（5分钟）</span>
           </a>
         </li>
         <li class="menu__item">
@@ -82,7 +83,7 @@
                 d="M5.9,12.92s-2.57,25.8,0,27.71,24.3,1,26.59,0S32,12.92,32,12.92Z"
               />
             </svg>
-            <span>Beer Break</span>
+            <span>喝啤酒（1小时）</span>
           </a>
         </li>
       </ul>
@@ -149,17 +150,27 @@
     <div class="content">
       <div class="percent">
         <transition name="percent-left" mode="out-in">
-          <div :key="percentsLeft">15</div>
+          <div :key="percentsLeft">{{ percentsLeft }}</div>
         </transition>
         <span>%</span>
       </div>
     </div>
-    <v-btn outlined rounded x-large class="btn">开始</v-btn>
+    <v-btn outlined rounded x-large class="btn" @click="reset">{{
+      btnText
+    }}</v-btn>
   </v-card>
 </template>
 
 <script>
 import settings from "@/settings.js";
+import countdown from "@/libs/countdown.min.js";
+import {
+  calculatePercentsLeft,
+  calculateScaleFactor,
+  guid,
+  padDigits,
+} from "@/utils/index.js";
+
 export default {
   name: "TomatoClockTimer",
   data() {
@@ -168,18 +179,120 @@ export default {
       activeReminder: settings.water,
       menuOpen: false,
       percentsLeft: 100,
-      timer: [{id:'0',value:'25:00'},{id:'1',value:'24:59'},{id:'2',value:'24:58'}],
+      timer: [],
+      stageBg: settings.water.stageBg,
+      timeStart:false,
+      percents: [100],
     };
   },
+  computed:{
+    btnText(){
+      if (this.timeStart) {
+        return '暂停'
+      }else{
+        return '开始'
+      }
+    },
+  },
+  watch: {
+    percentsLeft: function(val, oldVal) {
+      if (val === oldVal) {
+        return;
+      }
+      this.percents.splice(0, 1);
+      this.percents.push(val);
+      if (val == 0 && this.activeReminder.name != 'break') {
+        this.start('break');
+      }
+    }
+  },
+  mounted() {
+    this.resetTimer();
+    this.pauseTimer();
+  },
   methods: {
+    mouseOver(type) {
+      this.stageBg = settings[type].stageBg;
+    },
+    mouseOut() {
+      this.stageBg = this.activeReminder.stageBg;
+    },
+    reset() {
+      if (this.timeStart) {
+        this.pauseTimer();
+      } else {
+        this.continueTimer();
+      }
+      if (this.percentsLeft == 0) {
+        this.resetTimer();
+      }
+    },
+    setActiveReminder(reminder) {
+      this.activeReminder = settings[reminder];
+      this.stageBg = this.activeReminder.stageBg;
+    },
+    start(reminder) {
+      this.setActiveReminder(reminder);
+      this.percents = [100];
+      this.timer = [];
+      this.menuOpen = false;
+      this.resetTimer();
+      this.pauseTimer();
+    },
+    pauseTimer() {
+      window.clearInterval(this.countdown);
+      this.timeStart = false;
+    },
+    continueTimer() {
+      if (this.secondsLeft > 0) {
+        this.startTimer(this.secondsLeft - 1);
+      }
+      this.timeStart = true;
+    },
+    updateCountdown(ts) {
+      if (this.timer.length > 2) {
+        this.timer.splice(2);
+      }
+
+      const newTime = {
+        id: guid(),
+        value: `${padDigits(ts.minutes, 2)}:${padDigits(ts.seconds, 2)}`,
+      };
+
+      this.timer.unshift(newTime);
+    },
+    startTimer(secondsLeft) {
+      let now = new Date();
+      if (this.countdown) {
+        window.clearInterval(this.countdown);
+      }
+      this.countdown = countdown((ts) => {
+        this.secondsLeft = Math.ceil(ts.value / 1000);
+        this.percentsLeft = calculatePercentsLeft(
+          ts.value,
+          this.activeReminder.durationInMinutes
+        );
+        this.waveStyles = `transform: scale(1,${calculateScaleFactor(
+          this.percentsLeft
+        )})`;
+        this.updateCountdown(ts);
+        if (this.percentsLeft <= 0) {
+          this.pauseTimer();
+          this.timer = [];
+        }
+      }, now.getTime() + secondsLeft * 1000);
+    },
+    resetTimer() {
+      let durationInSeconds = 60 * this.activeReminder.durationInMinutes;
+      this.startTimer(durationInSeconds);
+    },
     toggleMenu() {
       this.menuOpen = !this.menuOpen;
       if (this.menuOpen) {
-        // this.pauseTimer();
+        this.pauseTimer();
         this.waveStyles = `transform: translate3d(0,100%,0); transition-delay: .25s;`;
       } else {
-        // this.continueTimer();
-        this.waveStyles = `transform: translate3d(0,0,0); transition-delay: .25s;`;
+        this.continueTimer();
       }
     },
   },
