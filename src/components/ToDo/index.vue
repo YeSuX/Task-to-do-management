@@ -1,5 +1,5 @@
 <template>
-  <v-card class="mx-auto" max-width="500">
+  <v-card class="wrapper">
     <v-card-title>目标任务</v-card-title>
     <v-list shaped class="wrapper" max-height="600px">
       <v-list-item-group v-model="model" multiple>
@@ -59,8 +59,6 @@ export default {
   name: "ToDo",
   data() {
     return {
-      items: ["Dog Photos", "Cat Photos", "", "Potatoes", "Carrots"],
-      model: ["Carrots"],
     };
   },
 };
